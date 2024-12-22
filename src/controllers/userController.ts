@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { UserModel, ContentModel } from '../models/Users';
 import { validation, passCaching } from '../middleware/userVerify'
 
@@ -15,12 +15,14 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response):Promise<any> => {
     try {
-        if(!validation(req, res)) return
+        if(!validation(req.body)) return
         
         const user = await passCaching(req)
         const newUser = new UserModel(user)
         await newUser.save()
+
         return res.status(200).json({message: "Usuario criado com sucesso!"})
+
     } catch(error) {
         return res.status(500)
     }
