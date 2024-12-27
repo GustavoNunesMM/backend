@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getUsers,  createUser , delUser} from '../controllers/userController';
-import {getClass, createClass, delClass,  } from '../controllers/classControler'
+import {getClass, createClass, delClass, alterClass } from '../controllers/classControler'
 import {createContent, delContent, getContent } from '../controllers/contentController'
 import { getStudent, createStudent, delStudent } from '../controllers/studentController';
 
@@ -17,7 +17,7 @@ router.delete('/', delUser)
 router.post('/class', createClass)
 router.get('/class', getClass)
 router.delete('/class', delClass)
-
+router.put('/Class', alterClass)
 
 //conteudo
 router.get('/Content', getContent)

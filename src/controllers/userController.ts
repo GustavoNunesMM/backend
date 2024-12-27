@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserModel, ContentModel } from '../models/Users';
-import { validation, passCaching } from '../middleware/userVerify'
+import {createNewUser} from '../services/UserService'
 
 
 // Controlador para obter todos os usuários
@@ -15,16 +15,15 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response):Promise<any> => {
     try {
-        if(!validation(req.body)) return
-        
-        const user = await passCaching(req)
-        const newUser = new UserModel(user)
-        await newUser.save()
+        const result = await createNewUser(req.body)
 
-        return res.status(200).json({message: "Usuario criado com sucesso!"})
+        if(result.sucess) {
+            res.status(200).json({message: result.message})
+        }
+        return res.status(400).json({message: result.message})
 
     } catch(error) {
-        return res.status(500)
+        return res.status(500).json({message: "Erro interno da aplicação", error})
     }
 }
 
