@@ -1,7 +1,7 @@
 import {Request, Response} from 'express'
 import { ClassModel } from '../models/Users'
 import { validation } from '../middleware/classValidate'
-import { changeClass } from '../services/ClassStudent' 
+import { changeClass } from '../services/ClassStudentService' 
 
 export const getClass = async (req: Request, res: Response) => {
     try {
@@ -45,25 +45,12 @@ export const delClass = async (req: Request, res: Response ):Promise<any> => {
 export const alterClass = async (req: Request, res: Response):Promise<any> => {
     try{ 
         const data = req.body
-        let result:resultInterface = await changeClass(data)
-        /*switch (operation) {
-            case "AddStudent":
-                result = await addStudent(data)
-                break
-            case "RemoveStudent":
-                result = await remStudent(data)
-                break
-            case "ChangeSeries":
-                result = await changeSeries(data)
-                break
-            default: 
-                res.status(400).json({sucess: false, message: "Operação invalida"})
-    }*/
+        const result:resultInterface = await changeClass(data)
+
         if (result.sucess) {
             return res.status(200).json({message: result.message})
-        } else{
-            return res.status(400).json({message: result.message})
-        }
+        } else return res.status(400).json({message: result.message})
+
     } catch(error) {
         res.status(500).json({message: "Erro interno do servidor", error})
     }

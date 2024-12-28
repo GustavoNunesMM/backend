@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { ClassModel, StudentClassModel } from '../models/Users'
 import { createNewUser } from './UserService'
-import { changeClass } from './ClassStudent'
+import { changeClass } from './ClassStudentService'
 
 export const createStudentHandler = async(data:any) => {
     const session = await mongoose.startSession()
@@ -28,7 +28,7 @@ export const createStudentHandler = async(data:any) => {
             await session.abortTransaction()
             return {sucess:false, message: classResult.message}
         }
-        
+
         const studentClass = new StudentClassModel({ //Cria a relação aluno classe, definindo o aluno, a classe que ele pertence, e o desempenho
             student:userResult.userId,
             Class:data.ClassID,

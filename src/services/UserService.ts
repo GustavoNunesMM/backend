@@ -1,6 +1,7 @@
 import { UserModel } from "../models/Users";
 import {validation} from '../middleware/userValidate'
 import bcrypt from 'bcrypt'
+import { changeModel } from "../middleware/modifyModel";
 
 export const createNewUser = async (userData:userData) => {
     const valid = await validation(userData)
@@ -23,24 +24,10 @@ export const deleteUserByEmail = async(email:string) => {
     return {sucess:true, message:"usuario deletado no email:", email}
 }
 
-export const changeUser = async(userData:userChange) => {
+export const changeUser = async(userData) => {
     try {
-        const {_id, changes} = userData
-        console.log("Alterações recebidas:", changes)
-
-        const updateFields = changes.reduce((acc, change) => {
-            const [key, value] = Object.entries(change)[0]  // Extrai o key-value do objeto
-            acc[key] = value  // Adiciona ao acumulador para construção do update
-            return acc
-        }, {});
-
-        const result = await UserModel.findByIdAndUpdate(
-            _id,
-            {$set: updateFields},
-            {new: true}
-        )
-        console.log("Atualizado", result)
-        return {sucess:true, message: "Usuario alterado com sucesso"}
+        const result = await changeModel(userData, UserModel)
+        return result
     } catch(error) {
         return {sucess:false, message: "Falha ao alterado usuario", error}
     }
@@ -62,9 +49,4 @@ interface userData {
     savedSettings?: string[],
     permissionLevel: string,
     ClassID?: string
-}
-
-interface userChange {
-    _id: string,
-    changes: string[]
 }

@@ -1,5 +1,6 @@
 import {Request, Response} from 'express'
 import { ContentModel, ClassModel } from '../models/Users'
+import { modifyContent } from '../services/contentService'
 
 export const getContent = async (req: Request, res:Response):Promise<any> => {
     try {
@@ -14,12 +15,12 @@ export const createContent = async (req: Request, res:Response):Promise<any> => 
     try {
         const {name, teacher, ClassID} = req.body
         const newContent = new ContentModel({name, teacher});
+
         const updateClass = await ClassModel.findByIdAndUpdate(
             ClassID,
             {$push: { contents: newContent}},
             { new: true}
         )
-        console.log(ClassID)
         
         if(!updateClass) {
             return res.status(400).json({ message: "Classe não atualizada"})
@@ -40,6 +41,16 @@ export const delContent = async (req: Request, res:Response):Promise<any> => {
         return res.status(200).json({message: "Conteudo deletada com sucesso"})
     } catch(error){
         res.status(500).json({message: "Erro ao deletar conteudo"})
+    }
+}
+
+export const changeContent = async (req:Request, res:Response):Promise<any> => {
+    try {
+        const result = await modifyContent(req.body)
+        if(!result.sucess) res.status(400).json({message:result.message})
+            else res.status(200).json({message:result.message})
+    }catch(error){
+        res.status(500).json({message: "Erro ao modificar conteudo"})
     }
 }
 
