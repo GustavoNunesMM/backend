@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from 'express'
 import { StudentClassModel } from '../models/Users'
-import { createStudentHandler, deleteStudentHandler } from '../services/StudentService'
-
+import { createStudentHandler, deleteStudentHandler, modifyStudent } from '../services/StudentService'
+import { responseServer } from '../middleware/error'
 export const getStudent = async (req:Request, res:Response) => {
     try{
         const student = await StudentClassModel.find()
@@ -14,8 +14,8 @@ export const getStudent = async (req:Request, res:Response) => {
 export const createStudent = async(req:Request, res:Response, next:NextFunction):Promise<any> => {
     try {
         const result = await createStudentHandler(req.body)
-        if (!result.sucess) return res.status(400).json({message:result.message})
-        res.status(201).json({message:"Aluno criado com sucesso!"})
+        
+        responseServer(result, res)
     } catch(error) {
         console.error("Erro ao criar aluno:", error);
         return res.status(500).json({ message: 'Erro ao criar aluno', error });
@@ -25,15 +25,29 @@ export const createStudent = async(req:Request, res:Response, next:NextFunction)
 export const delStudent = async(req:Request, res:Response):Promise<any> => {
     try {
         const result = await deleteStudentHandler(req.body._id)
-        if (result.success) return res.status(404).json({ message: 'Aluno não encontrado' })
-        return res.status(200).json({ message: 'Aluno deletado com sucesso' })
-
+        responseServer(result, res)
     } catch(error) {
         return res.status(500).json({ message: 'Erro ao deletar aluno', error })
     }
 }
 
+export const changeStudent = async(req:Request, res:Response):Promise<any> => {
+    try{
+        const result = await modifyStudent(req.body)
+        responseServer(result, res)
+    } catch(error){
+        return res.status(500).json({message: "Erro ao modificar aluno", error})
+    }
+}
 
+/* Requisições do tipo $push devem ter o formato de:
+{
+	"_id": "67678aef518bd7c188575111",
+    "changes": [
+        {"$push": {"terms": {"content": "67703aadea1d2a6cac90c088", "bimesters": []} }}
+    ]
+}
+*/
 /*---- modelo criação -----
 new Schema({
     student: { type: Schema.Types.ObjectId, ref: 'User', required: true },

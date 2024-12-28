@@ -58,7 +58,7 @@ interface IClass extends Document {
     series: string;
     name: string;
     students: mongoose.Types.ObjectId[]; // Lista de IDs de alunos
-    contents: IContent[];
+    contents: mongoose.Types.ObjectId[];
 }
 
 // Schema de Turma
@@ -66,7 +66,7 @@ const ClassSchema: Schema = new Schema({
     series: { type: String, required: true },
     name: { type: String, required: true },
     students: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Referência aos alunos
-    contents: [{ type: ContentSchema }], // Conteúdos ministrados na turma
+    contents: [{ type: Schema.Types.ObjectId, ref: 'Content' }], // Conteúdos ministrados na turma
 });
 
 const ClassModel = model<IClass>('Class', ClassSchema);

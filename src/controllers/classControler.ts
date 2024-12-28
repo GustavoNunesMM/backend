@@ -1,7 +1,8 @@
 import {Request, Response} from 'express'
 import { ClassModel } from '../models/Users'
 import { validation } from '../middleware/classValidate'
-import { changeClass } from '../services/ClassStudentService' 
+import { changeClass, deleteClass } from '../services/ClassService' 
+import { responseServer } from '../middleware/error'
 
 export const getClass = async (req: Request, res: Response) => {
     try {
@@ -33,10 +34,9 @@ export const createClass = async (req: Request, res: Response ):Promise<any> => 
 
 export const delClass = async (req: Request, res: Response ):Promise<any> => {
     try{
-        const { _id } = req.body
-        const result = await ClassModel.deleteOne({_id})
-        if (result.deletedCount === 0) return res.status(404).json({message: "Turma não encontrada"})
-        return res.status(200).json({message: "Turma deletada com sucesso"})
+        const data = req.body
+        const result = await deleteClass(data)
+        responseServer(result, res)
     } catch(error){
         res.status(500).json({message: "Erro ao deletar turma"})
     }
@@ -47,9 +47,7 @@ export const alterClass = async (req: Request, res: Response):Promise<any> => {
         const data = req.body
         const result:resultInterface = await changeClass(data)
 
-        if (result.sucess) {
-            return res.status(200).json({message: result.message})
-        } else return res.status(400).json({message: result.message})
+        responseServer(result, res)
 
     } catch(error) {
         res.status(500).json({message: "Erro interno do servidor", error})

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserModel, ContentModel } from '../models/Users';
 import {createNewUser, changeUser} from '../services/UserService'
-
+import { responseServer } from '../middleware/error';
 
 // Controlador para obter todos os usuários
 export const getUsers = async (req: Request, res: Response) => {
@@ -17,11 +17,7 @@ export const createUser = async (req: Request, res: Response):Promise<any> => {
     try {
         const result = await createNewUser(req.body)
 
-        if(result.sucess) {
-            res.status(200).json({message: result.message})
-        } else {
-            return res.status(400).json({message: result.message})
-        }
+        responseServer(result, res)
 
     } catch(error) {
         return res.status(500).json({message: "Erro interno da aplicação", error})
@@ -42,12 +38,7 @@ export const delUser = async (req: Request, res: Response):Promise<any> => {
 export const userChange = async (req: Request, res: Response):Promise<any> => {
     try {
         const result = await changeUser(req.body)
-        console.log(result)
-        if (result.sucess) {
-            res.status(200).json({message: result.message})
-        } else {
-            res.status(400).json({message: result.message})
-        }
+        responseServer(result, res)
     } catch(error) {
         res.status(400).json(error)
     }

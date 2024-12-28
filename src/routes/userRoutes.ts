@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getUsers,  createUser , delUser, userChange} from '../controllers/userController';
 import {getClass, createClass, delClass, alterClass } from '../controllers/classControler'
 import {createContent, delContent, getContent } from '../controllers/contentController'
-import { getStudent, createStudent, delStudent } from '../controllers/studentController';
+import { getStudent, createStudent, delStudent, changeStudent } from '../controllers/studentController';
 
 const router = Router();
 
@@ -28,6 +28,7 @@ router.delete('/Content', delContent)
 router.get('/Student', getStudent)
 router.post('/Student', createStudent)
 router.delete('/Student', delStudent)
+router.put('/Student', changeStudent)
 
 //Criar para relação StudentClass
 

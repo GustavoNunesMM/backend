@@ -1,3 +1,4 @@
+import { errorHandler } from "./error"
 export const changeModel = async(data: dataInterface, model):Promise<resultInterface> => {
     try {
         const { changes } = data
@@ -8,38 +9,39 @@ export const changeModel = async(data: dataInterface, model):Promise<resultInter
             return acc
         },[]) 
 
-        const result = operationMap(operationFilter, data._id, model) //Realiza map sobre as operações, para suporte de multiplas simultaneas
+        const result = await operationMap(operationFilter, data._id, model) //Realiza map sobre as operações, para suporte de multiplas simultaneas
 
-        if (!result.sucess) return {sucess:false, message: result.message}
-            else return {sucess:true, message: result.message}
+        return await errorHandler(result)
     }catch(error) {
         return {sucess:false, message:"Erro interno", error}
     }
 }
 
 
-const operationMap= (operationArray:Operation[], _id:string, model) => {
+const operationMap= async (operationArray:Operation[], _id:string, model) => {
     let acc:number = 0
-    const numberOfOperations =  operationArray.length+1
+    const numberOfOperations =  operationArray.length
 
-    operationArray.forEach(async (operation:Operation, index:number) => {
+    for (const [index, operation] of operationArray.entries()) {
         const count =  await querry(_id, operation, model)
         count ? acc += 1: null
 
         if (acc == index+1) console.log("Operação concluida", acc)
             else console.log("A operação de numero", index, operation, "não foi concluida")
         
-    })
+    }
     if (acc >= 1) return {sucess:true, message: `Foram realizadas ${acc} operações de ${numberOfOperations}`}
         else return {sucess:false, message: "Não foi realizada nenhuma operação"}
 }
 
 const querry = async (_id:string, operation:Operation, model) =>{ //Realiza a querry para cada operação solicitada
+    console.log(operation)
     const response = await model.findByIdAndUpdate(
         _id,
         operation,
         {new: true, runValidators:true}
     )
+    console.log(response)
     return response
 }
 

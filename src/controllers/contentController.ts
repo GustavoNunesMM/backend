@@ -1,32 +1,30 @@
 import {Request, Response} from 'express'
 import { ContentModel, ClassModel } from '../models/Users'
-import { modifyContent } from '../services/contentService'
+import { modifyContent, deleteContent } from '../services/contentService'
+import { responseServer } from '../middleware/error'
 
 export const getContent = async (req: Request, res:Response):Promise<any> => {
     try {
         const content = await ContentModel.find()
-        res.json(content)
+        res.status(200).json(content)
     }catch(error) {
-        console.log(error)
         return res.status(500).json({message: "Erro ao achar conteudo"})
     }
 }
 export const createContent = async (req: Request, res:Response):Promise<any> => {
     try {
-        const {name, teacher, ClassID} = req.body
+        const {name, teacher} = req.body
         const newContent = new ContentModel({name, teacher});
-
-        const updateClass = await ClassModel.findByIdAndUpdate(
+        await newContent.save()
+        console.log(newContent)
+/*
+        const result = await ClassModel.findByIdAndUpdate(
             ClassID,
             {$push: { contents: newContent}},
             { new: true}
         )
-        
-        if(!updateClass) {
-            return res.status(400).json({ message: "Classe não atualizada"})
-        } else {
-            return res.status(200).json({message: "Classe atualizada com sucesso"})
-        }
+*/
+        return res.status(200).json({ message: "Conteudo atualizado"})
     } catch(error) {
         console.log(error)
         return res.status(500).json({message: "Erro ao criar conteudo"})
@@ -34,24 +32,13 @@ export const createContent = async (req: Request, res:Response):Promise<any> => 
 }
 
 export const delContent = async (req: Request, res:Response):Promise<any> => {
-    try{
-        const { name } = req.body
-        const result = await ContentModel.deleteOne({name})
-        if (result.deletedCount === 0) return res.status(404).json({message: "Conteudo não encontrada"})
-        return res.status(200).json({message: "Conteudo deletada com sucesso"})
-    } catch(error){
-        res.status(500).json({message: "Erro ao deletar conteudo"})
-    }
+    const result = await deleteContent(req.body)
+    responseServer(result, res)
 }
 
 export const changeContent = async (req:Request, res:Response):Promise<any> => {
-    try {
-        const result = await modifyContent(req.body)
-        if(!result.sucess) res.status(400).json({message:result.message})
-            else res.status(200).json({message:result.message})
-    }catch(error){
-        res.status(500).json({message: "Erro ao modificar conteudo"})
-    }
+    const result = await modifyContent(req.body)
+    responseServer(result, res)
 }
 
 /*  ---- modelo de criação ---------

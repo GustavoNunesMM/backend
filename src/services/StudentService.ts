@@ -1,11 +1,14 @@
 import mongoose from 'mongoose'
 import { ClassModel, StudentClassModel } from '../models/Users'
 import { createNewUser } from './UserService'
-import { changeClass } from './ClassStudentService'
+import { changeClass } from './ClassService'
+import { changeModel } from '../middleware/modifyModel'
+import { errorHandler } from '../middleware/error'
 
 export const createStudentHandler = async(data:any) => {
     const session = await mongoose.startSession()
     session.startTransaction()
+
     try {
         const { contents } = await ClassModel 
                     .findById(data.ClassID) //seleciona dentro da turma do id = ClassID
@@ -18,12 +21,12 @@ export const createStudentHandler = async(data:any) => {
             await session.abortTransaction()
             return {sucess: false, message: userResult.message}
         }
-        const requestAddStudent = {
+        const requestAddStudent = { 
             _id:data.ClassID, 
             changes: [{"$push": {"students": String(userResult.userId)}}]
         }
 
-        const classResult = await changeClass(requestAddStudent) //Adiciona a turma o aluno, caso contrario interrompe o processo
+        const classResult = await changeClass(requestAddStudent) //Adiciona na turma o user, caso contrario interrompe o processo
         if (!classResult.sucess) {
             await session.abortTransaction()
             return {sucess:false, message: classResult.message}
@@ -34,17 +37,11 @@ export const createStudentHandler = async(data:any) => {
             Class:data.ClassID,
             terms: contents.map((contentId) => ({
                 content:contentId,
-                bimesters: Array(4).fill('').map((_, index) => ({
-                    name: `Bimestre ${index + 1}`,
-                    grades: [],
-                    attendence: 0,
-                    maxgrade: 25
-                })
-            )}))
-        })
+                bimesters: generateBimester()
+            }))})
         await studentClass.save({ session })
         await session.commitTransaction()
-        return {sucess:true, studentId:userResult.userId}
+        return {sucess:true, message: "Aluno criado com sucesso"}
 
     }   catch(error) {
             await session.abortTransaction()
@@ -56,8 +53,40 @@ export const createStudentHandler = async(data:any) => {
 
 export const deleteStudentHandler = async (studentId: string) => {
     const result = await StudentClassModel.deleteOne({ _id: studentId });
-    if (result.deletedCount === 0) return { success: false, message: 'Aluno não encontrado' };
-    return { success: true };
+    if (result.deletedCount === 0) return { sucess: false, message: 'Aluno não encontrado' };
+    return { sucess: true, message: "Aluno deletado com sucesso" };
 };
 
-//adicionar alterar aluno
+export const modifyStudent = async (data) => {
+    try {
+        const newData = verifyPush(data)
+        const result = await changeModel(newData, StudentClassModel)
+
+        return result
+    } catch(error) {
+        return {sucess:false, message:"Erro interno do sistema", error}
+    }
+}
+
+const verifyPush = ({changes}) => {
+    const newData = changes.map((operation) => {
+        console.log()
+        if(operation.$push.terms.bimesters &&  operation.$push.terms.bimesters.length == 0) {
+            operation.$push.terms.bimesters = generateBimester()
+        } else {
+            console.log("Operação não necessaria")
+        }
+    })
+    return newData
+}
+
+const generateBimester = () => {
+    return (
+        Array(4).fill('').map((_, index) => ({
+            name: `Bimestre ${index + 1}`,
+            grades: [],
+            attendence: 0,
+            maxgrade: 25
+        }))
+    )
+}
