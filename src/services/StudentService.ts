@@ -1,22 +1,35 @@
 import mongoose from 'mongoose'
 import { ClassModel, StudentClassModel } from '../models/Users'
 import { createNewUser } from './UserService'
+import { changeClass } from './ClassStudent'
 
 export const createStudentHandler = async(data:any) => {
     const session = await mongoose.startSession()
     session.startTransaction()
     try {
-        const { contents } = await ClassModel
-                    .findById(data.ClassID)
-                    .populate('contents', '_id name')
-        const userResult = await createNewUser(data)
-        
+        const { contents } = await ClassModel 
+                    .findById(data.ClassID) //seleciona dentro da turma do id = ClassID
+                    .populate('contents', '_id name') // Os conteudos, puxando id e nome
+
+        data.permissionLevel = 'aluno' //define a permissão como aluno
+
+        const userResult = await createNewUser(data) //neste bloco cria um novo usuario e avalia se ouve sucesso, caso contrario interrompe o processo
         if(!userResult.sucess) {
-            console.log("olá")
             await session.abortTransaction()
             return {sucess: false, message: userResult.message}
         }
-        const studentClass = new StudentClassModel({
+        const requestAddStudent = {
+            _id:data.ClassID, 
+            changes: [{"$push": {"students": String(userResult.userId)}}]
+        }
+
+        const classResult = await changeClass(requestAddStudent) //Adiciona a turma o aluno, caso contrario interrompe o processo
+        if (!classResult.sucess) {
+            await session.abortTransaction()
+            return {sucess:false, message: classResult.message}
+        }
+        
+        const studentClass = new StudentClassModel({ //Cria a relação aluno classe, definindo o aluno, a classe que ele pertence, e o desempenho
             student:userResult.userId,
             Class:data.ClassID,
             terms: contents.map((contentId) => ({
@@ -46,3 +59,5 @@ export const deleteStudentHandler = async (studentId: string) => {
     if (result.deletedCount === 0) return { success: false, message: 'Aluno não encontrado' };
     return { success: true };
 };
+
+//adicionar alterar aluno

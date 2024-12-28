@@ -1,7 +1,7 @@
 import {Request, Response} from 'express'
 import { ClassModel } from '../models/Users'
 import { validation } from '../middleware/classValidate'
-import { addStudent, changeSeries, remStudent } from '../services/ClassStudent' 
+import { changeClass } from '../services/ClassStudent' 
 
 export const getClass = async (req: Request, res: Response) => {
     try {
@@ -44,9 +44,9 @@ export const delClass = async (req: Request, res: Response ):Promise<any> => {
 
 export const alterClass = async (req: Request, res: Response):Promise<any> => {
     try{ 
-        const { operation, ...data } = req.body
-        let result:resultInterface
-        switch (operation) {
+        const data = req.body
+        let result:resultInterface = await changeClass(data)
+        /*switch (operation) {
             case "AddStudent":
                 result = await addStudent(data)
                 break
@@ -58,7 +58,7 @@ export const alterClass = async (req: Request, res: Response):Promise<any> => {
                 break
             default: 
                 res.status(400).json({sucess: false, message: "Operação invalida"})
-    }
+    }*/
         if (result.sucess) {
             return res.status(200).json({message: result.message})
         } else{

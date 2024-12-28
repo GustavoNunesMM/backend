@@ -15,7 +15,7 @@ export const createStudent = async(req:Request, res:Response, next:NextFunction)
     try {
         const result = await createStudentHandler(req.body)
         if (!result.sucess) return res.status(400).json({message:result.message})
-        res.status(201).json({message:"Aluno criado com sucesso!", studentId: result.studentId})
+        res.status(201).json({message:"Aluno criado com sucesso!"})
     } catch(error) {
         console.error("Erro ao criar aluno:", error);
         return res.status(500).json({ message: 'Erro ao criar aluno', error });

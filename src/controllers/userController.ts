@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserModel, ContentModel } from '../models/Users';
-import {createNewUser} from '../services/UserService'
+import {createNewUser, changeUser} from '../services/UserService'
 
 
 // Controlador para obter todos os usuários
@@ -19,8 +19,9 @@ export const createUser = async (req: Request, res: Response):Promise<any> => {
 
         if(result.sucess) {
             res.status(200).json({message: result.message})
+        } else {
+            return res.status(400).json({message: result.message})
         }
-        return res.status(400).json({message: result.message})
 
     } catch(error) {
         return res.status(500).json({message: "Erro interno da aplicação", error})
@@ -37,6 +38,21 @@ export const delUser = async (req: Request, res: Response):Promise<any> => {
         return res.status(500).json({ message: 'Erro ao deletar usuário', error })
     }
 }
+
+export const userChange = async (req: Request, res: Response):Promise<any> => {
+    try {
+        const result = await changeUser(req.body)
+        console.log(result)
+        if (result.sucess) {
+            res.status(200).json({message: result.message})
+        } else {
+            res.status(400).json({message: result.message})
+        }
+    } catch(error) {
+        res.status(400).json(error)
+    }
+}
+
 
 
 /*---- modelo criação -----

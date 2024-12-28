@@ -25,7 +25,7 @@ const UserSchema: Schema = new Schema({
         enum: Object.values(PermissionLevel),
         required: true,
     },
-    ClassID: { type: Schema.Types.ObjectId, ref: 'Class', required: true },
+    ClassID: { type: Schema.Types.ObjectId, ref: 'Class' },
     savedSettings: { type: Schema.Types.Mixed, default: {} },
 });
 

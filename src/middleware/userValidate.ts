@@ -2,25 +2,28 @@ import { Request, Response } from 'express';
 import { UserModel } from '../models/Users';
 
 
-export const validation = async ({username, email, password, confirmPassword, ...rest}) => {
-
-    if (!username  && !email && !password) {
-        return console.log('Campo(s) em branco')
-    }
+export const validation = async (data: userData) => {
+    const {username, email, password, permissionLevel, ClassID, savedSettings, confirmPassword} = data
     
-    const emailExist = await UserModel.findOne({email})
-    if (emailExist) {
-        console.log('E-mail já cadastrado')
-        return false
-    }
+    if (username.length <= 3) return {sucess: false, message: "Nome do usuario muito curto"}
+    const countUsername = await UserModel.countDocuments({'username': username})
+    if (countUsername >= 1 ) return {sucess:false, message: "Nome já utilizado"}
 
-    const nameExist = await UserModel.findOne({username})
-    if (nameExist) {
-        console.log('Nome já cadastrado')
-        return false
-    }
-    //const VerifyConfPass = req.body.filter(key => key!=="confirmPassword")
-    //if (confirmPassword && password!==confirmPassword) return false
-    return true
+    const countEmail = await UserModel.countDocuments({'email': email})
+    if (!email.includes('@')) return {sucess: false, message: "Formato do e-mail incorreto"}
+    if (countEmail >= 1 ) return {sucess:false, message: "Email já utilizado"}
+
+    if (confirmPassword && confirmPassword != password) return {sucess:false, message: "Senha e Confirmação de senha divergentes"}
+
+    return {sucess:true, message: "Perfil de usuario valido"}
 }
 
+interface userData {
+    username: string,
+    password: string,
+    confirmPassword?: string,
+    email: string,
+    savedSettings?: string[],
+    permissionLevel: string,
+    ClassID?: string
+}
