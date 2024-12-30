@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json()); // Para poder interpretar o corpo das requisições como JSON
 
 // Definindo a rota
-app.use('/users', userRoutes);
+app.use('/user', userRoutes);
 
 
 const PORT = 4040;

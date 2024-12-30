@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Configure no arquivo .env
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  endereco        String?
+  contato         String? 
+  username        String    @unique
+  password        String
+  email           String    @unique
+  permissionLevel String
+  classId         Int?
+  terms           Json?
+  createdAt       DateTime  @default(now())
+  classes         Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id])
+  teachers        Content[] @relation("TeacherContentRelation") // Relacionamento oposto com Content
+  content         UserContent[]
+}
+
+model Class {
+  id        Int       @id @default(autoincrement())
+  series    String
+  name      String
+  createdAt DateTime  @default(now())
+  users     User[]    @relation("UserClassRelation") // Relacionamento oposto com User
+  contents  ContentClass[] 
+}
+
+model Content {
+  id        Int       @id @default(autoincrement())
+  teacherId Int?
+  name      String
+  teacher   User?     @relation(name: "TeacherContentRelation", fields: [teacherId], references: [id]) // Referência opcional ao professor
+  classes   ContentClass[]
+  users     UserContent[]
+}
+
+//join table for Content and Class many-to-many relationship to regulate onDelete behavior
+model ContentClass {
+  ContentId  Int
+  classId   Int
+  user    Content  @relation(fields: [ContentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([ContentId, classId]) // Composite primary key
+}
+
+model UserContent {
+  ContentId  Int
+  userId    Int
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  content Content @relation(fields: [ContentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([ContentId, userId]) // Composite primary key
+}

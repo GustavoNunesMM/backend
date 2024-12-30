@@ -57,8 +57,8 @@ const ContentModel = model<IContent>('Content', ContentSchema);
 interface IClass extends Document {
     series: string;
     name: string;
-    students: mongoose.Types.ObjectId[]; // Lista de IDs de alunos
-    contents: mongoose.Types.ObjectId[];
+    students: mongoose.Types.ObjectId[] // Lista de IDs de alunos
+    contents: mongoose.Types.ObjectId[]
 }
 
 // Schema de Turma
@@ -67,9 +67,9 @@ const ClassSchema: Schema = new Schema({
     name: { type: String, required: true },
     students: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Referência aos alunos
     contents: [{ type: Schema.Types.ObjectId, ref: 'Content' }], // Conteúdos ministrados na turma
-});
+})
 
-const ClassModel = model<IClass>('Class', ClassSchema);
+const ClassModel = model<IClass>('Class', ClassSchema)
 
 // ==============================
 // Interface e Schema: Bimestre
@@ -121,7 +121,7 @@ const StudentClassSchema: Schema = new Schema({
         ],
         default: [],
     }, // 4 Bimestres com notas e presenças
-});
+})
 
 const StudentClassModel = model<IStudentClass>('StudentClass', StudentClassSchema);
 

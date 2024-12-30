@@ -61,22 +61,21 @@ export const modifyStudent = async (data) => {
     try {
         const newData = verifyPush(data)
         const result = await changeModel(newData, StudentClassModel)
-
         return result
     } catch(error) {
         return {sucess:false, message:"Erro interno do sistema", error}
     }
 }
 
-const verifyPush = ({changes}) => {
-    const newData = changes.map((operation) => {
-        console.log()
-        if(operation.$push.terms.bimesters &&  operation.$push.terms.bimesters.length == 0) {
-            operation.$push.terms.bimesters = generateBimester()
-        } else {
-            console.log("Operação não necessaria")
+const verifyPush = (data) => {
+    let newData = data
+    for (const [index, operation] of data.changes.entries()) {
+        try {
+            operation.$push.terms.bimesters.length == 0? newData.changes[index].$push.terms.bimesters = generateBimester(): console.log("null") 
+        } catch(error){
+            console.log(error)
         }
-    })
+    }
     return newData
 }
 

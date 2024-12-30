@@ -35,13 +35,12 @@ const operationMap= async (operationArray:Operation[], _id:string, model) => {
 }
 
 const querry = async (_id:string, operation:Operation, model) =>{ //Realiza a querry para cada operação solicitada
-    console.log(operation)
     const response = await model.findByIdAndUpdate(
         _id,
         operation,
         {new: true, runValidators:true}
     )
-    console.log(response)
+    !response? console.log("Provavel problema de querry"): console.log("Querry executada", response)
     return response
 }
 
