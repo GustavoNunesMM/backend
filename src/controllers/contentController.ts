@@ -1,47 +1,67 @@
-import {Request, Response} from 'express'
-import { ContentModel, ClassModel } from '../models/Users'
-import { modifyContent, deleteContent } from '../services/contentService'
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { changeModel } from '../middleware/modifyModel'
 import { responseServer } from '../middleware/error'
+const prisma = new PrismaClient();
 
-export const getContent = async (req: Request, res:Response):Promise<any> => {
+export const getContents = async (req: Request, res: Response) => {
     try {
-        const content = await ContentModel.find()
-        res.status(200).json(content)
-    }catch(error) {
-        return res.status(500).json({message: "Erro ao achar conteudo"})
-    }
-}
-export const createContent = async (req: Request, res:Response):Promise<any> => {
-    try {
-        const {name, teacher} = req.body
-        const newContent = new ContentModel({name, teacher});
-        await newContent.save()
-        console.log(newContent)
-/*
-        const result = await ClassModel.findByIdAndUpdate(
-            ClassID,
-            {$push: { contents: newContent}},
-            { new: true}
-        )
-*/
-        return res.status(200).json({ message: "Conteudo atualizado"})
-    } catch(error) {
-        console.log(error)
-        return res.status(500).json({message: "Erro ao criar conteudo"})
+        const contents = await prisma.content.findMany();
+        res.status(200).json(contents);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch contents' });
     }
 }
 
-export const delContent = async (req: Request, res:Response):Promise<any> => {
-    const result = await deleteContent(req.body)
-    responseServer(result, res)
+export const getContentById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.body
+        const content = await prisma.content.findUnique({
+            where: { id: Number(id) },
+            include: {users: true, classes: true}
+        }); 
+
+        if (!content) {
+            return res.status(404).json({ error: 'Content not found' });
+        }
+
+        res.json(content);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 }
 
-export const changeContent = async (req:Request, res:Response):Promise<any> => {
-    const result = await modifyContent(req.body)
-    responseServer(result, res)
+export const createContent = async(req: Request, res: Response) => {
+    try {
+        const data = req.body
+        const content = await prisma.content.create({
+            data,
+        });
+        res.status(201).json(content);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create content' });
+    }
 }
 
-/*  ---- modelo de criação ---------
-    name: "Matemática",
-    teacher: new mongoose.Types.ObjectId("63f123456789abcdef012345")
-*/
+export const deleteContent = async(req: Request, res: Response) => {
+    const { id } = req.body
+    try {
+        const result = await prisma.content.delete({
+            where: {
+                id: Number(id),
+            },
+        });
+        res.status(204).send();
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete content', err });
+    }
+}
+
+export const updateContent = async (req: Request, res: Response) => {
+    try {
+        const result = await changeModel(req.body, "content")
+        responseServer(result, res)
+    }catch(err) {
+        res.status(500).json({ error: 'Failed to update content', err });
+    }
+}

@@ -1,28 +1,32 @@
 import { errorHandler } from "./error"
-export const changeModel = async(data: dataInterface, model):Promise<resultInterface> => {
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const changeModel = async(data: dataInterface, model:string):Promise<resultInterface> => {
     try {
         const { changes } = data
-
-        const operationFilter =  changes.reduce((acc, change)=>{ //realiza reduce em cima das alterações para concatenar o array por operação
+        const operationFilter =  changes.reduce((acc: Operation[], change)=>{ //realiza reduce em cima das alterações para concatenar o array por operação
             const [operation, field] = Object.entries(change)[0] as [string, any]
             acc.push({[operation]: field})
             return acc
         },[]) 
-
+        
         const result = await operationMap(operationFilter, data._id, model) //Realiza map sobre as operações, para suporte de multiplas simultaneas
 
         return await errorHandler(result)
-    }catch(error) {
+    }catch(error:any) {
         return {sucess:false, message:"Erro interno", error}
     }
 }
 
 
-const operationMap= async (operationArray:Operation[], _id:string, model) => {
+const operationMap= async (operationArray:Operation[], _id:string, model:any):Promise<resultInterface> => {
     let acc:number = 0
     const numberOfOperations =  operationArray.length
-
+    console.log("Numero de operações", numberOfOperations)
     for (const [index, operation] of operationArray.entries()) {
+        console.log("Operação", operation)
         const count =  await querry(_id, operation, model)
         count ? acc += 1: null
 
@@ -34,14 +38,21 @@ const operationMap= async (operationArray:Operation[], _id:string, model) => {
         else return {sucess:false, message: "Não foi realizada nenhuma operação"}
 }
 
-const querry = async (_id:string, operation:Operation, model) =>{ //Realiza a querry para cada operação solicitada
-    const response = await model.findByIdAndUpdate(
-        _id,
-        operation,
-        {new: true, runValidators:true}
-    )
-    !response? console.log("Provavel problema de querry"): console.log("Querry executada", response)
-    return response
+const querry = async (_id:string, operation:Operation, model:string):Promise<boolean> =>{ //Realiza a querry para cada operação solicitada
+    try {
+        const prismaModel = (prisma as any)[model]
+        const response = await prismaModel.update({
+            where: { id: parseInt(_id)  },
+            data: operation,
+        })
+        console.log("Resposta", response)
+        !response? console.log("Provavel problema de querry"): console.log("Querry executada", response)
+        return true
+    } catch (error) {
+        console.log("Erro ao executar querry", error)
+        return false
+    }
+    
 }
 
 interface resultInterface {

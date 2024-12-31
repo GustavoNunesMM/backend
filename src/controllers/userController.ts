@@ -1,61 +1,65 @@
-import { NextFunction, Request, Response } from 'express';
-import { UserModel, ContentModel } from '../models/Users';
-import {createNewUser, changeUser} from '../services/UserService'
-import { responseServer } from '../middleware/error';
+import { PrismaClient } from '@prisma/client';
+import { Request, Response } from 'express';
+import { changeModel } from '../middleware/modifyModel'
+import { responseServer } from '../middleware/error'
 
-// Controlador para obter todos os usuários
+const prisma = new PrismaClient();
+
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const users = await UserModel.find(); // Encontrando todos os usuários
-        res.json(users);
+        const users = await prisma.user.findMany();
+        res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao obter usuários', error });
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+    const { id } = req.body;
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: Number(id),
+            },
+            include: {content:true ,classes: true}
+        });
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch user' });
+    }
+};
+
+export const createUser = async (req: Request, res: Response) => {
+    const data = req.body
+    try {
+        const user = await prisma.user.create({
+            data,
+        });
+        res.status(201).json(user);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create user', err });
     }
 }
 
-export const createUser = async (req: Request, res: Response):Promise<any> => {
+export const deleteUser = async (req: Request, res: Response) => {
+    let { id } = req.body
     try {
-        const result = await createNewUser(req.body)
+        const result = await prisma.user.delete({
+            where: {
+                id: Number(id),
+            },
+        });
+        res.status(204).send();
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete user', err });
+    }
+}
 
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const result = await changeModel(req.body, "user")
         responseServer(result, res)
-
-    } catch(error) {
-        return res.status(500).json({message: "Erro interno da aplicação", error})
+    }catch(err) {
+        res.status(500).json({ error: 'Failed to update user', err });
     }
 }
-
-export const delUser = async (req: Request, res: Response):Promise<any> => {
-    try {
-        const { email } = req.body
-        const result = await UserModel.deleteOne({email})
-        if (result.deletedCount === 0 ) return res.status(404).json({ message: 'Usuário não encontrado' })
-        return res.status(200).json({ message: 'Usuário deletado com sucesso' })
-    }catch(error) {
-        return res.status(500).json({ message: 'Erro ao deletar usuário', error })
-    }
-}
-
-export const userChange = async (req: Request, res: Response):Promise<any> => {
-    try {
-        const result = await changeUser(req.body)
-        responseServer(result, res)
-    } catch(error) {
-        res.status(400).json(error)
-    }
-}
-
-
-
-/*---- modelo criação -----
-new Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    permissionLevel: {
-        type: String,
-        enum: Object.values(PermissionLevel),
-        required: true,
-    },
-    savedSettings: { type: Schema.Types.Mixed, default: {} },
-});
-*/
