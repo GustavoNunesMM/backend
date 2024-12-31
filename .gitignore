@@ -1,1 +1,4 @@
 ./node_modules
+./api-curd-prisma/node_modules
+./api-curd-prisma/.env
+
