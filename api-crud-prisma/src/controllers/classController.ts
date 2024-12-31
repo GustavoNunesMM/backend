@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { changeModel } from '../middleware/modifyModel'
+import { responseServer } from '../middleware/error'
 
 const prisma = new PrismaClient();
 
@@ -16,6 +18,7 @@ export const getClassById = async (req: Request, res: Response) => {
         const { id } = req.body;
         const classData = await prisma.class.findUnique({
             where: { id: Number(id) },
+            include: {users: true, contents: true}
         });
 
         if (!classData) {
@@ -54,5 +57,14 @@ export const deleteClass = async(req: Request, res: Response) => {
         res.status(204).send();
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete class', err });
+    }
+}
+
+export const updateClass = async(req: Request, res: Response) => {
+    try {
+        const result = await changeModel(req.body, "class")
+        responseServer(result, res)
+    }catch(err) {
+        res.status(500).json({ error: 'Failed to update class', err });
     }
 }

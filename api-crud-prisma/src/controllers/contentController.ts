@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-
+import { changeModel } from '../middleware/modifyModel'
+import { responseServer } from '../middleware/error'
 const prisma = new PrismaClient();
 
 export const getContents = async (req: Request, res: Response) => {
@@ -17,7 +18,8 @@ export const getContentById = async (req: Request, res: Response) => {
         const { id } = req.body
         const content = await prisma.content.findUnique({
             where: { id: Number(id) },
-        });
+            include: {users: true, classes: true}
+        }); 
 
         if (!content) {
             return res.status(404).json({ error: 'Content not found' });
@@ -30,13 +32,10 @@ export const getContentById = async (req: Request, res: Response) => {
 }
 
 export const createContent = async(req: Request, res: Response) => {
-    const { name, teacherId } = req.body;
     try {
+        const data = req.body
         const content = await prisma.content.create({
-            data: {
-                name,
-                teacherId
-            },
+            data,
         });
         res.status(201).json(content);
     } catch (error) {
@@ -55,5 +54,14 @@ export const deleteContent = async(req: Request, res: Response) => {
         res.status(204).send();
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete content', err });
+    }
+}
+
+export const updateContent = async (req: Request, res: Response) => {
+    try {
+        const result = await changeModel(req.body, "content")
+        responseServer(result, res)
+    }catch(err) {
+        res.status(500).json({ error: 'Failed to update content', err });
     }
 }

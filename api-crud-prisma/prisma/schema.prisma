@@ -18,9 +18,9 @@ model User {
   classId         Int?
   terms           Json?
   createdAt       DateTime  @default(now())
-  classes         Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id])
+  classes         Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id]) //mudar nome para singular?
   teachers        Content[] @relation("TeacherContentRelation") // Relacionamento oposto com Content
-  content         UserContent[]
+  content         UserContent[] //mudar nome para plural?
 }
 
 model Class {
@@ -35,7 +35,7 @@ model Class {
 model Content {
   id        Int       @id @default(autoincrement())
   teacherId Int?
-  name      String
+  name      String //Talvez deva ser unico?
   teacher   User?     @relation(name: "TeacherContentRelation", fields: [teacherId], references: [id]) // Referência opcional ao professor
   classes   ContentClass[]
   users     UserContent[]
