@@ -32,13 +32,10 @@ export const getClassById = async (req: Request, res: Response) => {
 };
 
 export const createClass = async(req: Request, res: Response) => {
-    const { name, series, users, contents } = req.body;
+    const data = req.body;
     try {
         const classData = await prisma.class.create({
-            data: {
-                name,
-                series
-            },
+            data
         });
         res.status(201).json(classData);
     } catch (error) {
