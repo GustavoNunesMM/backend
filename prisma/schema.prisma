@@ -18,9 +18,9 @@ model User {
   classId         Int?
   terms           Json?
   createdAt       DateTime  @default(now())
-  classes         Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id]) //mudar nome para singular?
-  teachers        Content[] @relation("TeacherContentRelation") // Relacionamento oposto com Content
-  content         UserContent[] //mudar nome para plural?
+  classe          Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id]) //mudar nome para singular?
+  teacher         Content[] @relation("TeacherContentRelation") // Relacionamento oposto com Content
+  contents        UserContent[] //mudar nome para plural?
 }
 
 model Class {

@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import { changeModel } from '../middleware/modifyModel'
 import { responseServer } from '../middleware/error'
-const prisma = new PrismaClient();
 
 export const getContents = async (req: Request, res: Response) => {
     try {
@@ -13,9 +12,9 @@ export const getContents = async (req: Request, res: Response) => {
     }
 }
 
-export const getContentById = async (req: Request, res: Response) => {
+export const getContentById = async (req: Request, res: Response):Promise<any> => {
+    const { id } = req.body
     try {
-        const { id } = req.body
         const content = await prisma.content.findUnique({
             where: { id: Number(id) },
             include: {users: true, classes: true}
@@ -25,7 +24,7 @@ export const getContentById = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Content not found' });
         }
 
-        res.json(content);
+        res.status(200).json(content);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }

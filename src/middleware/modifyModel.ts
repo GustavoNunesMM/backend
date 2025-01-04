@@ -1,7 +1,4 @@
-import { errorHandler } from "./error"
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../index';
 
 export const changeModel = async(data: dataInterface, model:string):Promise<resultInterface> => {
     try {
@@ -13,20 +10,20 @@ export const changeModel = async(data: dataInterface, model:string):Promise<resu
         },[]) 
         
         const result = await operationMap(operationFilter, data._id, model) //Realiza map sobre as operações, para suporte de multiplas simultaneas
-
-        return await errorHandler(result)
+        
+        return {sucess:result.sucess, message:result.message}
     }catch(error:any) {
         return {sucess:false, message:"Erro interno", error}
     }
 }
 
 
-const operationMap= async (operationArray:Operation[], _id:string, model:any):Promise<resultInterface> => {
+const operationMap = async (operationArray:Operation[], _id:string, model:any):Promise<resultInterface> => {
     let acc:number = 0
     const numberOfOperations =  operationArray.length
     console.log("Numero de operações", numberOfOperations)
     for (const [index, operation] of operationArray.entries()) {
-        console.log("Operação", operation)
+        console.log("Operação",index,  operation)
         const count =  await querry(_id, operation, model)
         count ? acc += 1: null
 
@@ -40,9 +37,9 @@ const operationMap= async (operationArray:Operation[], _id:string, model:any):Pr
 
 const querry = async (_id:string, operation:Operation, model:string):Promise<boolean> =>{ //Realiza a querry para cada operação solicitada
     try {
-        const prismaModel = (prisma as any)[model]
+        const prismaModel = (prisma as any)[model] //permite um modelo dinamico
         const response = await prismaModel.update({
-            where: { id: parseInt(_id)  },
+            where: { id: Number(_id)  },
             data: operation,
         })
         console.log("Resposta", response)

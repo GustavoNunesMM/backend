@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import { changeModel } from '../middleware/modifyModel'
 import { responseServer } from '../middleware/error'
 
-const prisma = new PrismaClient();
+
 
 export const getClass = async (req: Request, res: Response) => {
     try {
@@ -13,9 +13,9 @@ export const getClass = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch classes' });
     }
 }
-export const getClassById = async (req: Request, res: Response) => {
+export const getClassById = async (req: Request, res: Response):Promise<any> => {
+    const { id } = req.body
     try {
-        const { id } = req.body;
         const classData = await prisma.class.findUnique({
             where: { id: Number(id) },
             include: {users: true, contents: true}
@@ -25,7 +25,7 @@ export const getClassById = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Class not found' });
         }
 
-        res.json(classData);
+        res.status(200).json(classData);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }

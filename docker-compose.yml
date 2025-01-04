@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   dcs-postgres:
     image: postgres:15.3-alpine
@@ -23,7 +22,8 @@ services:
     ports:
       - 8080:80
     volumes:
-      - ./data/pgadmin:/var/lib/pgadmin
+      - ./data/pgadmin:/var/lib/
+
 
 networks:
   default:

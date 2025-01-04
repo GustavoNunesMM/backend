@@ -1,10 +1,11 @@
-import { Response } from "express"
-export const errorHandler = async (result:resultInterface):Promise<resultInterface> => {
-    const { sucess, message, error } = result
-    if (sucess) return {sucess,  message}
-    if (error) return {sucess, message, error}
-        else return {sucess, message}
-}
+import { Response, Request, NextFunction } from "express"
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error(err);
+    res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+    details: err.details || null,
+    });
+};
 
 export const responseServer = async(result:resultInterface, res:Response) => {
     if (result.sucess) return res.status(200).json({ message: result.message })

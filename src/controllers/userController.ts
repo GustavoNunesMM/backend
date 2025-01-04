@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import { Request, Response } from 'express';
 import { changeModel } from '../middleware/modifyModel'
 import { responseServer } from '../middleware/error'
-
-const prisma = new PrismaClient();
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
@@ -18,9 +16,7 @@ export const getUserById = async (req: Request, res: Response) => {
     const { id } = req.body;
     try {
         const user = await prisma.user.findUnique({
-            where: {
-                id: Number(id),
-            },
+            where: {id: Number(id)},
             include: {content:true ,classes: true}
         });
         res.status(200).json(user);
