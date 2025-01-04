@@ -13,8 +13,9 @@ export const getClass = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch classes' });
     }
 }
+
 export const getClassById = async (req: Request, res: Response):Promise<any> => {
-    const { id } = req.body
+    const { id } = req.params
     try {
         const classData = await prisma.class.findUnique({
             where: { id: Number(id) },
@@ -59,9 +60,22 @@ export const deleteClass = async(req: Request, res: Response) => {
 
 export const updateClass = async(req: Request, res: Response) => {
     try {
-        const result = await changeModel(req.body, "class")
+        const newBody = validateUpdate(req.body)
+        const result = await changeModel(newBody, "class")
         responseServer(result, res)
     }catch(err) {
         res.status(500).json({ error: 'Failed to update class', err });
     }
 }
+
+const validateUpdate = (data:any) => {
+    const newData = {...data}
+
+    return newData
+}
+
+
+// tenho duas funções
+// uma que realiza update nas relações de um modelo
+
+// outra que realiza update em um modelo

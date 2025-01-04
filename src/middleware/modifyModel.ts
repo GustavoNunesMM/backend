@@ -3,7 +3,7 @@ import { prisma } from '../index';
 export const changeModel = async(data: dataInterface, model:string):Promise<resultInterface> => {
     try {
         const { changes } = data
-        const operationFilter =  changes.reduce((acc: Operation[], change)=>{ //realiza reduce em cima das alterações para concatenar o array por operação
+        const operationFilter =  changes.reduce((acc: any[], change)=>{ //realiza reduce em cima das alterações para concatenar o array por operação
             const [operation, field] = Object.entries(change)[0] as [string, any]
             acc.push({[operation]: field})
             return acc
