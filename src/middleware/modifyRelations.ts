@@ -1,15 +1,16 @@
 import { prisma } from '../index'
 
-async function updateRelationsIncrementally(
-    mainId: number,
+export async function updateRelations(
+    _id: number,
     newRelatedIds: number[],
-    relationModel: "userContent" | "classContent" | "classUser",
-    mainField: string,
+    relationModel: string,
+    mainField: string,  //campo principal do model utilizado
     relatedField: string
 ) {
+    const prismaModel = (prisma as any)[relationModel]
     // Obtém relações existentes
-    const existingRelations = await (prisma as any)[relationModel].findMany({
-        where: { [mainField]: mainId },
+    const existingRelations = await prismaModel.findMany({
+        where: { [mainField]: _id },
         select: { [relatedField]: true },
     });
     // Obtém ids das relações existentes
@@ -18,25 +19,27 @@ async function updateRelationsIncrementally(
     // Calcula relações para adicionar e remover
     const toAdd = newRelatedIds.filter((id:number) => !existingIds.includes(id));
     const toRemove = existingIds.filter((id:number) => !newRelatedIds.includes(id));
-
+    let removedOrder, createdOrder;
     // Adiciona novas relações
+    
     if (toAdd.length) {
         const data = toAdd.map((id) => ({
-            [mainField]: mainId,
+            [mainField]: _id,
             [relatedField]: id,
-        }));
-        await (prisma as any)[relationModel].createMany({ data });
-    }
-
+        }))
+        createdOrder = await prismaModel.createMany({ data });
+    }// {mainField: _id, relatedField: id}
     // Remove relações antigas
     if (toRemove.length) {
-        await (prisma as any)[relationModel].deleteMany({
+        removedOrder = await prismaModel.deleteMany({
             where: {
-                [mainField]: mainId,
+                [mainField]: _id,
                 [relatedField]: { in: toRemove },
             },
-        });
+        })
     }
+    console.log("Foram criadas", createdOrder, "relações")
+    console.log("Foram deletadas", removedOrder, "relações")
 }
 
 

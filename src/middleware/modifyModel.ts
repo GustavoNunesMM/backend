@@ -17,7 +17,6 @@ export const changeModel = async(data: dataInterface, model:string):Promise<resu
     }
 }
 
-
 const operationMap = async (operationArray:Operation[], _id:string, model:any):Promise<resultInterface> => {
     let acc:number = 0
     const numberOfOperations =  operationArray.length
@@ -51,6 +50,16 @@ const querry = async (_id:string, operation:Operation, model:string):Promise<boo
     }
     
 }
+// alterar para querryAll?
+const queryAll = async(_id:number, operation[], model:string):Promise<any> => {
+    const prismaModel = (prisma as any)[model]
+    const response = await prismaModel.updateMany({
+        where: { id: Number(_id) },
+        data: operation,
+    })
+    return response
+}
+
 
 interface resultInterface {
     message: string,

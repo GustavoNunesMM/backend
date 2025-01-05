@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { changeModel } from '../middleware/modifyModel'
 import { responseServer } from '../middleware/error'
-
+import { updateRelations } from '../middleware/modifyRelations'
 
 
 export const getClass = async (req: Request, res: Response) => {
@@ -60,18 +60,20 @@ export const deleteClass = async(req: Request, res: Response) => {
 
 export const updateClass = async(req: Request, res: Response) => {
     try {
-        const newBody = validateUpdate(req.body)
-        const result = await changeModel(newBody, "class")
-        responseServer(result, res)
+        const { _id, newRelatedIds, relationModel, mainField, relatedField, changes } = req.body
+        const resultRelations = updateRelations(
+            Number(_id),
+            newRelatedIds,
+            relationModel,
+            mainField,
+            relatedField
+        )
+
+        const resultModify = await changeModel({_id ,changes}, "class")
+        res.status(200).json({message: "Relation updated"});
     }catch(err) {
         res.status(500).json({ error: 'Failed to update class', err });
     }
-}
-
-const validateUpdate = (data:any) => {
-    const newData = {...data}
-
-    return newData
 }
 
 
