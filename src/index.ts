@@ -4,15 +4,17 @@ import cors from 'cors'
 import userRoutes from './routes/routes'
 import { errorHandler } from './middleware/error'
 import { PrismaClient } from "@prisma/client";
-import { withOptimize } from "@prisma/extension-optimize";
-
-
+import { withOptimize } from "@prisma/extension-optimize"
+export const bcrypt = require('bcryptjs')
+const cookieParser = require('cookie-parser')
 const app = express()
+
 
 export const prisma = new PrismaClient().$extends(
   withOptimize({ apiKey: process.env.OPTIMIZE_API_KEY || '' }),
 )
 
+app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(cors())
 app.use(userRoutes)

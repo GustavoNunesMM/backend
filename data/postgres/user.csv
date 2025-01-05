@@ -1,0 +1,4 @@
+id,endereco,contato,username,password,email,permissionLevel,classId,terms,createdAt
+"1,""Rua A, 123"",""(11) 91234-5678"",""john_doe"",""password123"",""john@example.com"",""admin"",1,""{""""terms"""":true}"",""2025-01-01T10:00:00Z"""
+"2,""Rua B, 456"",""(21) 98765-4321"",""jane_doe"",""password456"",""jane@example.com"",""teacher"",null,null,""2025-01-01T10:00:00Z"""
+

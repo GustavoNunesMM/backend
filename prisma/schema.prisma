@@ -18,15 +18,15 @@ model User {
   classId         Int?
   terms           Json?
   createdAt       DateTime  @default(now())
-  classe          Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id]) //mudar nome para singular?
+  class           Class?    @relation(name: "UserClassRelation", fields: [classId], references: [id]) //mudar nome para singular?
   teacher         Content[] @relation("TeacherContentRelation") // Relacionamento oposto com Content
-  contents        UserContent[] //mudar nome para plural?
+  contents        UserContent[] 
 }
 
 model Class {
   id        Int       @id @default(autoincrement())
-  series    String
-  name      String
+  serie     String    
+  name      String 
   createdAt DateTime  @default(now())
   users     User[]    @relation("UserClassRelation") // Relacionamento oposto com User
   contents  ContentClass[] 
@@ -43,19 +43,19 @@ model Content {
 
 //join table for Content and Class many-to-many relationship to regulate onDelete behavior
 model ContentClass {
-  ContentId  Int
-  classId   Int
-  user    Content  @relation(fields: [ContentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contentId   Int  
+  classId     Int
+  user        Content  @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  class       Class @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([ContentId, classId]) // Composite primary key
+  @@id([contentId, classId]) // Composite primary key
 }
 
 model UserContent {
-  ContentId  Int
-  userId    Int
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  content Content @relation(fields: [ContentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contentId   Int 
+  userId      Int
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  content     Content @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([ContentId, userId]) // Composite primary key
+  @@id([contentId, userId]) // Composite primary key
 }

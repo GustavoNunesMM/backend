@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
-import { changeModel } from '../middleware/modifyModel'
-import { responseServer } from '../middleware/error'
-import { updateRelations } from '../middleware/modifyRelations'
+import { changeModel } from '../services/modifyModel'
+import { updateRelations } from '../services/modifyRelations'
+import { error } from 'console';
 
 
 export const getClass = async (req: Request, res: Response) => {
@@ -35,7 +35,7 @@ export const getClassById = async (req: Request, res: Response):Promise<any> => 
 export const createClass = async(req: Request, res: Response) => {
     const data = req.body;
     try {
-        const classData = await prisma.class.create({
+        const classData = await prisma.class.createMany({
             data
         });
         res.status(201).json(classData);
@@ -47,7 +47,7 @@ export const createClass = async(req: Request, res: Response) => {
 export const deleteClass = async(req: Request, res: Response) => {
     const { id } = req.body
     try {
-        const result = await prisma.class.delete({
+        const result = await prisma.class.deleteMany({
             where: {
                 id: Number(id),
             },
@@ -58,26 +58,47 @@ export const deleteClass = async(req: Request, res: Response) => {
     }
 }
 
-export const updateClass = async(req: Request, res: Response) => {
+export const updateClass = async (req: Request, res: Response):Promise<any> => {
     try {
-        const { _id, newRelatedIds, relationModel, mainField, relatedField, changes } = req.body
-        const resultRelations = updateRelations(
-            Number(_id),
-            newRelatedIds,
-            relationModel,
-            mainField,
-            relatedField
-        )
-
-        const resultModify = await changeModel({_id ,changes}, "class")
-        res.status(200).json({message: "Relation updated"});
+        const { _id, newRelatedIds, relationModel, changes } = req.body
+        let resultRelations: resultInterface = { message: '', sucess: false }
+        let resultModify: resultInterface = { message: '', sucess: false }
+        if (changes) resultModify = await changeModel({_id ,changes}, "Class")
+        if (resultModify.error) return res.status(500).json({ message:"Erro ao modificar Classe", error: resultModify.error})
+        
+        if (relationModel == "ContentClass" ){
+            console.log("Content Class", _id, newRelatedIds)
+            resultRelations = await updateRelations(
+                Number(_id),
+                newRelatedIds,
+                'ContentClass',
+                'classId',
+                'ContentId'
+            )
+        }
+        if ( resultRelations.error) return res.status(500).json({ message:"Erro ao modificar relações", error: resultRelations.error});
+        if ( resultRelations.sucess || resultModify.sucess) {
+            return res
+                .status(200)
+                .json({message: `Alteração nas relações realizada com ${resultRelations.sucess} e alteração no modelo realizada com ${resultModify.sucess}`})
+        } else {
+            res.status(500).json({ message: "Não foram realizadas operações" })
+        }
     }catch(err) {
-        res.status(500).json({ error: 'Failed to update class', err });
+        res.status(500).json({ error: 'Falha ao atualizar classe', err });
     }
 }
 
-
-// tenho duas funções
-// uma que realiza update nas relações de um modelo
-
-// outra que realiza update em um modelo
+interface resultInterface {
+    message: string,
+    sucess: boolean,
+    error?:string
+}
+/*
+    _id: number,
+    newRelatedIds: number[],
+    relationModel: string,
+    changes: [
+    {operations: string, field: string},
+    {operations: string, field: string}]
+  */

@@ -1,14 +1,16 @@
 import { prisma } from '../index';
 import { Request, Response } from 'express';
-import { changeModel } from '../middleware/modifyModel'
-import { responseServer } from '../middleware/error'
+import { changeModel } from '../services/modifyModel'
+import { updateRelations } from '../services/modifyRelations'
+import { bcrypt } from '../index'
+
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
         const users = await prisma.user.findMany();
-        res.status(200).json(users);
+        res.status(200).json(users)
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch users' });
+        res.status(500).json({ error: 'Failed to fetch users' })
     }
 };
 
@@ -17,30 +19,34 @@ export const getUserById = async (req: Request, res: Response) => {
     try {
         const user = await prisma.user.findUnique({
             where: {id: Number(id)},
-            include: {content:true ,classes: true}
+            include: {contents:true ,class: true}
         });
-        res.status(200).json(user);
+        res.status(200).json(user)
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch user' });
+        res.status(500).json({ error: 'Failed to fetch user' })
     }
 };
 
 export const createUser = async (req: Request, res: Response) => {
     const data = req.body
     try {
-        const user = await prisma.user.create({
+        const salt = await bcrypt.genSalt(10) // Usar 10 como padrão
+        const hashedPassword = await bcrypt.hash(data.password, salt)
+        data.password = hashedPassword
+        console.log("data",data)
+        const User = await prisma.user.create({
             data,
-        });
-        res.status(201).json(user);
+        })
+        res.status(201).json({ message: 'User created successfully' })
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create user', err });
+        res.status(500).json({ error: 'Failed to create user', err })
     }
 }
 
 export const deleteUser = async (req: Request, res: Response) => {
     let { id } = req.body
     try {
-        const result = await prisma.user.delete({
+        const result = await prisma.user.deleteMany({
             where: {
                 id: Number(id),
             },
@@ -51,11 +57,46 @@ export const deleteUser = async (req: Request, res: Response) => {
     }
 }
 
-export const updateUser = async (req: Request, res: Response) => {
-    try {
-        const result = await changeModel(req.body, "user")
-        responseServer(result, res)
+export const updateUser = async(req:Request, res:Response):Promise<any> => {
+    try{ 
+        const {_id, newRelatedIds, relationModel, changes } = req.body
+        let resultRelations:resultInterface = { message: '', sucess: false };
+        let resultModify:resultInterface = { message: '', sucess: false };
+        if(changes) resultModify = await changeModel({_id, changes}, "user")
+        if(resultModify.error) return res.status(500).json({message: 'Erro ao modificar usuario', error: resultModify.error})
+        
+        if (relationModel == "UserContent"){
+            console.log("UserContent")
+            resultRelations = await updateRelations(
+                Number(_id),
+                newRelatedIds,
+                'UserContent',
+                'userId',
+                'ContentId'
+            )
+        }
+        if ( resultRelations.error) return res.status(500).json({ message:"Erro ao modificar relações", error: resultRelations.error})
+        if ( resultRelations.sucess || resultModify.sucess) {
+            return res
+                .status(200)
+                .json({message: `Alteração nas relações realizada com ${resultRelations.sucess} e alteração no modelo realizada com ${resultModify.sucess}`})
+        } else {
+            res.status(500).json({ message: "Não foram realizadas operações" })
+        }
     }catch(err) {
-        res.status(500).json({ error: 'Failed to update user', err });
+        res.status(500).json({ error: 'Falha ao atualizar usuario', err })
     }
 }
+interface resultInterface {
+    message: string,
+    sucess: boolean,
+    error?:string
+}
+/*
+    _id: number,
+    newRelatedIds: number[],
+    relationModel: string,
+    changes: [
+    {operations: string, field: string},
+    {operations: string, field: string}]
+  */
