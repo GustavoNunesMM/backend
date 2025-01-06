@@ -1,42 +1,43 @@
 import { Request, Response} from 'express'
 import { prisma } from '../index'
-import { bcrypt } from '../index'
+import { verifyPass } from './encryptPass'
 const jwt = require('jsonwebtoken')
-const dotenv = require('dotenv')
-const cookieParser = require('cookie-parser')
 
 const SECRET_KEY = process.env.SECRET_KEY || 'your-secret-key'
 
 export const loginService = async (req: Request, res: Response):Promise<any> => {
     try {
-        const { username, password } = req.body
-        const salt = await bcrypt.genSalt(10) // Usar 10 como padrão
-        const hashedPassword = await bcrypt.hash(password, salt)
+        const data:loginInterface = req.body
 
-        const user:userInterface | null = await prisma.user.findUnique({
-            where: { username: username }
+        const user:userInterface | null = await prisma.user.findUnique({ //busca pelo usuario no banco
+            where: { username: data.username }
         })
-        if (!user) {
-            return res.status(401).json({ message: 'Usuário não encontrado' })
-        }
-        if (req.cookies.token) {
+
+        if (!user)   return res.status(401).json({ message: 'Usuário não encontrado' })//verifica se o usuario existe 
+        
+        if (req.cookies.token) { //verifica se o token existe
             jwt.verify(req.cookies.token, SECRET_KEY, (err: any, user: any) => {
-                if (err) {
-                    return res.status(403).json({ message: 'Token inválido' })
-                }
-                return  res.status(301)
-                            .json({ message: 'Usuário já autenticado', user })
-                            .redirect(301, `/user:${user.id}`)
+                if (err) return res.status(403).json({ message: 'Token inválido' }) //verifica se ouve erro com o token
+                    else return  res.redirect(302, `/user:${user.id}`) //caso contrario redireciona o usuario com status 302 para redireção temporaria
             })
+            
+        } else { //se não existe token
+            const validPassword = await verifyPass(data.password, user.password) //verifica se a senha é valida
+
+            if (!validPassword) return res.status(401).json({ message: 'Senha inválida' })
+
+            const token = jwt.sign({ username:data.username, email: user.email }, SECRET_KEY, { expiresIn: '1h' })
+            return res.cookie('token', token, { httpOnly: true }).redirect(302, `/user:${user.id}`)
         }
-        const validPassword = await bcrypt.compare(hashedPassword, user.password)
-        if (!validPassword) {
-            return res.status(401).json({ message: 'Senha inválida' })
-        }
-        const token = jwt.sign({ username, email: user.email }, SECRET_KEY, { expiresIn: '1h' })
-        res.status(301)
-            .cookie('token', token, { httpOnly: true })
-            .redirect(301, `/user:${user.id}`)
+        
+    } catch(error) {
+        res.status(500).json({ message: 'Erro interno do servidor', error })
+    }
+}
+
+export const logoutService = async (req: Request, res: Response):Promise<any> => {
+    try {
+        res.clearCookie('token').redirect(301, '/login')
     } catch(error) {
         res.status(500).json({ message: 'Erro interno do servidor', error })
     }
@@ -53,6 +54,11 @@ interface userInterface{
     classId: number | null
     terms: any | null
     createdAt: Date
+}
+
+interface loginInterface {
+    username: string
+    password: string
 }
 
 //res.cookie('token', token, { httpOnly: true });

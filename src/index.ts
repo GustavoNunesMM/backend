@@ -5,6 +5,7 @@ import userRoutes from './routes/routes'
 import { errorHandler } from './middleware/error'
 import { PrismaClient } from "@prisma/client";
 import { withOptimize } from "@prisma/extension-optimize"
+
 export const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const app = express()

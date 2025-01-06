@@ -1,4 +1,5 @@
-import { prisma } from '../index';
+import { prisma } from '../index'
+import { encryptPass } from './encryptPass'
 
 export const changeModel = async(data: dataInterface, model:string):Promise<resultInterface> => {
     try {
@@ -20,29 +21,26 @@ export const changeModel = async(data: dataInterface, model:string):Promise<resu
 const operationMap = async (operationArray:Operation[], _id:string, model:any):Promise<resultInterface> => {
     let acc:number = 0
     const numberOfOperations =  operationArray.length
-    console.log("Numero de operações", numberOfOperations)
     for (const [index, operation] of operationArray.entries()) {
-        console.log("Operação",index,  operation)
         const count =  await querryAll(_id, operation, model)
         count ? acc += 1: null
 
         if (acc == index+1) console.log("Operação concluida", acc)
             else console.log("A operação de numero", index, operation, "não foi concluida")
-        
     }
-    
     if (acc >= 1) return {sucess:true, message: `Foram realizadas ${acc} operações de ${numberOfOperations}`}
         else return {sucess:false, message: "Não foi realizada nenhuma operação"}
 }
 
-const querryAll = async (_id:string, operation:Operation, model:string):Promise<boolean> =>{ //Realiza a querry para cada operação solicitada
+const querryAll = async (_id:string, operation:any, model:string):Promise<boolean> =>{ //Realiza a querry para cada operação solicitada
     try {
         const prismaModel = (prisma as any)[model] //permite um modelo dinamico
+        if (operation.password)  operation.password = await encryptPass(operation.password) //criptografa a senha
+
         const response = await prismaModel.update({
             where: { id: Number(_id)  },
             data: operation,
         })
-        console.log("Resposta", response)
         !response? console.log("Provavel problema de querry"): console.log("Querry executada", response)
         return true
     } catch (error) {
@@ -63,7 +61,7 @@ interface dataInterface {
     changes: Operation[]
 }
 
-type OperationType = "$set" | "$pull" | "$push"; // Operações possíveis
+type OperationType = "password" | "$pull" | "$push"; // Operações possíveis
 
 type Operation = {
   [operation in OperationType]?: Record<string, string>; // Chaves são operações, valores são objetos com strings
