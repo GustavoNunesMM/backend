@@ -10,14 +10,21 @@ export const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const app = express()
 
+const corsOptions = {
+  origin: 'http://localhost:5173',  // URL do frontend
+  credentials: true,                // Permite o envio de cookies
+};
 
-export const prisma = new PrismaClient().$extends(
+app.use(cors(corsOptions));  // Usando o CORS com as opções
+
+export const prisma = new PrismaClient()
+/*.$extends(
   withOptimize({ apiKey: process.env.OPTIMIZE_API_KEY || '' }),
-)
+)*/
+
 
 app.use(cookieParser())
 app.use(bodyParser.json())
-app.use(cors())
 app.use(userRoutes)
 app.use(errorHandler)
 

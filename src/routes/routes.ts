@@ -3,13 +3,14 @@ import { loginService } from '../services/loginService'
 import { getUsers, getUserById, createUser, deleteUser, updateUser} from '../controllers/userController'
 import { getClass, getClassById, createClass, deleteClass, updateClass } from '../controllers/classController'
 import { getContents, getContentById, createContent, deleteContent, updateContent } from '../controllers/contentController'
+import { jwtAuth } from '../middleware/JwtAuth'
 
 const app = express();
 const router = Router()
 
 // Rotas para login
 router.post('/login', loginService)
-
+router.get('/auth/validate', jwtAuth)
 
 // Rotas para tratar usuarios
 router.get('/user', getUsers)

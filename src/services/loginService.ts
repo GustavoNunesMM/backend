@@ -12,24 +12,18 @@ export const loginService = async (req: Request, res: Response):Promise<any> => 
         const user:userInterface | null = await prisma.user.findUnique({ //busca pelo usuario no banco
             where: { username: data.username }
         })
+        if (!user) return res.status(404).json({message: "Usuario não encontrado"})
 
-        if (!user)   return res.status(401).json({ message: 'Usuário não encontrado' })//verifica se o usuario existe 
-        
-        if (req.cookies.token) { //verifica se o token existe
-            jwt.verify(req.cookies.token, SECRET_KEY, (err: any, user: any) => {
-                if (err) return res.status(403).json({ message: 'Token inválido' }) //verifica se ouve erro com o token
-                    else return  res.redirect(302, `/user:${user.id}`) //caso contrario redireciona o usuario com status 302 para redireção temporaria
-            })
-            
-        } else { //se não existe token
-            const validPassword = await verifyPass(data.password, user.password) //verifica se a senha é valida
+        const validPassword = await verifyPass(data.password, user.password)
+        if (!validPassword) return res.status(401).json({ message: 'Senha inválida' })
 
-            if (!validPassword) return res.status(401).json({ message: 'Senha inválida' })
-
-            const token = jwt.sign({ username:data.username, email: user.email }, SECRET_KEY, { expiresIn: '1h' })
-            return res.cookie('token', token, { httpOnly: true }).redirect(302, `/user:${user.id}`)
-        }
-        
+        const token = jwt.sign(
+            { username: data.username, email: user.email, id:user.id },
+            SECRET_KEY,
+            { expiresIn: '1h' }
+        )
+        res.cookie('token', token)
+        return res.status(200).json({userId: user.id})
     } catch(error) {
         res.status(500).json({ message: 'Erro interno do servidor', error })
     }
