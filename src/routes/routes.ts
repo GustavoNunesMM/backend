@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express'
 import { loginService, userLogout } from '../services/loginService'
-import { getUsers, getUserById, createUser, deleteUser, updateUser} from '../controllers/userController'
+import { getUsers, getUserById, createUser, registerUser, deleteUser, updateUser} from '../controllers/userController'
 import { getClass, getClassById, createClass, deleteClass, updateClass } from '../controllers/classController'
 import { getContents, getContentById, createContent, deleteContent, updateContent } from '../controllers/contentController'
 import { jwtAuth } from '../middleware/JwtAuth'
@@ -21,6 +21,7 @@ router.post('/register', createUser)
 router.get('/user', getUsers)
 router.get('/user/:id', getUserById)
 router.post('/user', createUser)
+router.post('/register/user', registerUser)
 router.delete('/user', deleteUser)
 router.put('/user', updateUser)
 

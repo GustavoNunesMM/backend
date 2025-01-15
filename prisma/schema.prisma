@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL") // Configure no arquivo .env
 }
 
+enum PermissionLevel {
+  PROFESSOR
+  ALUNO
+  SUPERVISAO
+  ADMINISTRACAO
+}
+
 model User {
   id              Int       @id @default(autoincrement())
   endereco        String?
@@ -14,7 +21,7 @@ model User {
   username        String    @unique
   password        String
   email           String    @unique
-  permissionLevel String
+  permissionLevel PermissionLevel
   classId         Int?
   terms           Json?
   createdAt       DateTime  @default(now())

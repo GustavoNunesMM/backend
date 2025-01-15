@@ -31,7 +31,20 @@ export const createUser = async (req: Request, res: Response) => {
         const data = req.body
         data.password = await encryptPass(data.password)
         const user = await prisma.user.createMany({ data})
-        user? res.status(201).json({ message: 'Usuario criado com sucesso' }): res.status(500).json({ error: 'Falha ao criar usuario' })
+        console.log(user)
+        user? res.status(201).json({message: 'Usuario criado com sucesso', id: user.id }): res.status(500).json({ error: 'Falha ao criar usuario' })
+    } catch (err) {
+        res.status(500).json({ error: 'Falha ao criar o usuario', err })
+    }
+}
+
+export const registerUser = async (req: Request, res: Response) => {
+    try {
+        const data = req.body
+        data.password = await encryptPass(data.password)
+        const user = await prisma.user.create({ data})
+        console.log(user)
+        user? res.status(201).json({message: 'Usuario criado com sucesso', id: user.id }): res.status(500).json({ error: 'Falha ao criar usuario' })
     } catch (err) {
         res.status(500).json({ error: 'Falha ao criar o usuario', err })
     }
