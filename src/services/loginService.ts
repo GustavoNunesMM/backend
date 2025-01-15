@@ -22,18 +22,19 @@ export const loginService = async (req: Request, res: Response):Promise<any> => 
             SECRET_KEY,
             { expiresIn: '1h' }
         )
-        res.cookie('token', token)
+        res.cookie('token', token,{httpOnly: true})
         return res.status(200).json({userId: user.id})
     } catch(error) {
         res.status(500).json({ message: 'Erro interno do servidor', error })
     }
 }
 
-export const logoutService = async (req: Request, res: Response):Promise<any> => {
+export const userLogout = (req: Request, res: Response):any => {
     try {
-        res.clearCookie('token').redirect(301, '/login')
+        res.clearCookie('token')
+        return res.status(200).json({sucess: true})
     } catch(error) {
-        res.status(500).json({ message: 'Erro interno do servidor', error })
+        return res.status(500).json({ message: 'Erro interno do servidor', error })
     }
 }
 

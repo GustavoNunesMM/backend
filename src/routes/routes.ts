@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express'
-import { loginService } from '../services/loginService'
+import { loginService, userLogout } from '../services/loginService'
 import { getUsers, getUserById, createUser, deleteUser, updateUser} from '../controllers/userController'
 import { getClass, getClassById, createClass, deleteClass, updateClass } from '../controllers/classController'
 import { getContents, getContentById, createContent, deleteContent, updateContent } from '../controllers/contentController'
@@ -10,7 +10,12 @@ const router = Router()
 
 // Rotas para login
 router.post('/login', loginService)
+router.get('/user/logout', userLogout)
+
 router.get('/auth/validate', jwtAuth)
+
+// Rotas para registro
+router.post('/register', createUser)
 
 // Rotas para tratar usuarios
 router.get('/user', getUsers)

@@ -11,9 +11,12 @@ const cookieParser = require('cookie-parser')
 const app = express()
 
 const corsOptions = {
-  origin: 'http://localhost:5173',  // URL do frontend
-  credentials: true,                // Permite o envio de cookies
+  origin: 'http://localhost:5173', // Substitua pelo domínio do frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'], // Inclua cabeçalhos necessários
+  credentials: true, // Habilita envio de cookies/autenticação
 };
+
 
 app.use(cors(corsOptions));  // Usando o CORS com as opções
 
