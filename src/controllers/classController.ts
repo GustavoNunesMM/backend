@@ -66,7 +66,6 @@ export const getClassData = async (req: Request, res: Response): Promise<any> =>
                 }
             },
         })
-        console.log("Olá")
         if (!classDetails) {
             return res.status(404).json({ message: 'Classe não encontrada' });
         }
