@@ -18,12 +18,12 @@ export const loginService = async (req: Request, res: Response):Promise<any> => 
         if (!validPassword) return res.status(401).json({ message: 'Senha inválida' })
 
         const token = jwt.sign(
-            { username: data.username, email: user.email, id:user.id },
+            { username: data.username, email: user.email, id:user.id, permissionLevel: user.permissionLevel },
             SECRET_KEY,
             { expiresIn: '1h' }
         )
         res.cookie('token', token,{httpOnly: true})
-        return res.status(200).json({userId: user.id})
+        return res.status(200).json({userData: user})
     } catch(error) {
         res.status(500).json({ message: 'Erro interno do servidor', error })
     }

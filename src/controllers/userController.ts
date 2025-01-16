@@ -14,12 +14,14 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 
 export const getUserById = async (req: Request, res: Response) => {
-    const { id } = req.body;
+    const { id } = req.params
+    console.log("as",id)
     try {
         const user = await prisma.user.findUnique({
             where: {id: Number(id)},
             include: {contents:true ,class: true}
-        });
+        })
+        console.log("olá", user)
         res.status(200).json(user)
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user' })
@@ -44,7 +46,7 @@ export const registerUser = async (req: Request, res: Response) => {
         data.password = await encryptPass(data.password)
         const user = await prisma.user.create({ data})
         console.log(user)
-        user? res.status(201).json({message: 'Usuario criado com sucesso', id: user.id }): res.status(500).json({ error: 'Falha ao criar usuario' })
+        user? res.status(201).json({message: 'Usuario criado com sucesso', userData: user }): res.status(500).json({ error: 'Falha ao criar usuario' })
     } catch (err) {
         res.status(500).json({ error: 'Falha ao criar o usuario', err })
     }
@@ -77,7 +79,7 @@ export const updateUser = async(req:Request, res:Response):Promise<any> => {
                 newRelatedIds,
                 'UserContent',
                 'userId',
-                'ContentId'
+                'contentId'
             )
         }
 

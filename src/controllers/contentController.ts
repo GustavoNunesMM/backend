@@ -71,7 +71,7 @@ export const updateContent = async(req:Request, res:Response):Promise<any> => {
                     Number(_id),
                     newRelatedIds,
                     'UserContent',
-                    'ContentId',
+                    'contentId',
                     'userId'
                 )
                 break

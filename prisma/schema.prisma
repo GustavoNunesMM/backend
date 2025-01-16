@@ -52,7 +52,7 @@ model Content {
 model ContentClass {
   contentId   Int  
   classId     Int
-  user        Content  @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   class       Class @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([contentId, classId]) // Composite primary key

@@ -1,7 +1,7 @@
 import express, { Router, Request, Response } from 'express'
 import { loginService, userLogout } from '../services/loginService'
 import { getUsers, getUserById, createUser, registerUser, deleteUser, updateUser} from '../controllers/userController'
-import { getClass, getClassById, createClass, deleteClass, updateClass } from '../controllers/classController'
+import { getClass, getClassById, getClassData, createClass, deleteClass, updateClass } from '../controllers/classController'
 import { getContents, getContentById, createContent, deleteContent, updateContent } from '../controllers/contentController'
 import { jwtAuth } from '../middleware/JwtAuth'
 
@@ -32,7 +32,7 @@ router.get('/class/:id', getClassById)
 router.post('/class', createClass)
 router.delete('/class', deleteClass)
 router.put('/class', updateClass)
-
+router.get('/classData/:id', getClassData)
 
 // Rotas para tratar conteudos
 router.get('/content', getContents)
